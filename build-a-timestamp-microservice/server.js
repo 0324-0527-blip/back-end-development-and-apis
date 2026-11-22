@@ -1,21 +1,35 @@
-import express from "express";
-import cors from "cors";
+import express from 'express';
+import cors from 'cors';
 
 const app = express();
 
 app.use(cors({ optionsSuccessStatus: 200 }));
+app.use(express.static('public'));
 
-app.use(express.static("public"));
-
-app.get("/", (_req, res) => {
-  res.sendFile(import.meta.dirname + "/views/index.html");
+app.get('/', (_req, res) => {
+  res.sendFile(import.meta.dirname + '/views/index.html');
 });
 
-// Do not change code above this line
+const sendTimestamp = (dateInput, res) => {
+  const date =
+    dateInput !== undefined && /^-?\d+$/.test(dateInput)
+      ? new Date(Number(dateInput))
+      : new Date(dateInput ?? Date.now());
 
-// Do not change code below this line
+  if (Number.isNaN(date.getTime())) {
+    return res.json({ error: 'Invalid Date' });
+  }
+
+  return res.json({
+    unix: date.getTime(),
+    utc: date.toUTCString()
+  });
+};
+
+app.get('/api', (_req, res) => sendTimestamp(undefined, res));
+app.get('/api/:date', (req, res) => sendTimestamp(req.params.date, res));
 
 const PORT = 8000;
-const listener = app.listen(PORT, function () {
-  console.log("Your app is listening on port " + listener.address().port);
+const listener = app.listen(PORT, () => {
+  console.log('Your app is listening on port ' + listener.address().port);
 });
